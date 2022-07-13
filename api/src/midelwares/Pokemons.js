@@ -5586,4 +5586,26 @@ const pokemonsDb = [{
   }
 ]
 
-module.exports = { pokemonsDb };
+const axios = require("axios");
+
+async function listPokemonAPI(since, until) {
+  var apiPokemons = [];
+  for (let i = 0; i < (until - since); i++) {
+      apiPokemons[i] = await axios.get(`https://pokeapi.co/api/v2/pokemon/${i + since}/`)
+      apiPokemons[i] = {
+            id: apiPokemons[i].data.id,
+            name: apiPokemons[i].data.name,
+            image: apiPokemons[i].data.sprites.versions["generation-v"]["black-white"].animated.front_default,
+            life: apiPokemons[i].data.stats[0].base_stat,
+            strength: apiPokemons[i].data.stats[1].base_stat,
+            defense: apiPokemons[i].data.stats[2].base_stat,
+            speed: apiPokemons[i].data.stats[5].base_stat,
+            height: apiPokemons[i].data.height,
+            weight: apiPokemons[i].data.weight,
+            types: apiPokemons[i].data.types.map((t) => t.type.name),
+          }
+  }
+  return apiPokemons
+}
+
+module.exports = { pokemonsDb, listPokemonAPI };
