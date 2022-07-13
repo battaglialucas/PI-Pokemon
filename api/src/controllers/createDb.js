@@ -20,16 +20,16 @@ async function createTypesDb() {
 async function createPokemonsDb() {
   for (let pokemon of pokemonsDb) {
     let poke = await Pokemon.create({
-      name: pokemon.name,
+      name: pokemon.nombre,
       image: pokemon.image,
-      life: pokemon.life,
-      strength: pokemon.strength,
-      defense: pokemon.defense,
-      speed: pokemon.speed,
-      height: pokemon.height,
-      weight: pokemon.weight,
+      life: pokemon.vida,
+      strength: pokemon.fuerza,
+      defense: pokemon.defensa,
+      speed: pokemon.velocidad,
+      height: pokemon.altura,
+      weight: pokemon.peso,
     });
-    await poke.setTypes(pokemon.types)
+    await poke.setTypes(pokemon.tipo)
   }
 }
 

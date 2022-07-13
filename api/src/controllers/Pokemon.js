@@ -1,5 +1,6 @@
 const { Pokemon } = require("../db.js");
 const {verifyDuplicatePokemon, verifyPokemonId} = require("../verifications/Pokemon.js");
+const { Op } = require("sequelize");
 
 async function getAllPokemons() { 
     let pokemons = await Pokemon.findAll({ include: [{association:'types', through: { attributes: [] }}]})
@@ -38,4 +39,22 @@ async function deletePokemon(id){
     return "el pokemon fue eliminado"
 }
 
-module.exports = {getAllPokemons, getPokemonByName, getPokemonById, createPokemon, updatePokemon, deletePokemon};
+async function getPokemonsFiltered(data){
+
+    let { page, size, name, type, order} = data
+    let conditions = {include: [{association:'types', through: { attributes: [] }}]}
+
+    size = size > 0 ? Number.parseInt(size) : 1
+    page = page > 0 ? (Number.parseInt(page) - 1) : 0
+    conditions.limit= size
+    conditions.offset= page * size
+
+    if(type) conditions.include[0].where = {name : {[Op.like]: `%${type}%`}}
+    if(order) {order = order.split(","); conditions.order = [[order[0], order[1]]];}
+    if(name) conditions.where = {name : {[Op.like]: `%${name}%`}}
+    let pokemonFiltered = await Pokemon.findAll(conditions);
+
+    return pokemonFiltered
+}
+
+module.exports = {getAllPokemons, getPokemonByName, getPokemonById, createPokemon, updatePokemon, deletePokemon, getPokemonsFiltered};
