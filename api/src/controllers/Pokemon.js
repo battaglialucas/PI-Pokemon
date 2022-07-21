@@ -42,19 +42,32 @@ async function deletePokemon(id){
 async function getPokemonsFiltered(data){
 
     let { page, size, name, type, order} = data
-    let conditions = {include: [{association:'types', through: { attributes: [] }}]}
+    let conditions = {include: [{association:'types', through: { attributes: [] }}],distinct: true}
 
     size = size > 0 ? Number.parseInt(size) : 1
-    page = page > 0 ? (Number.parseInt(page) - 1) : 0
+    page = page > 0 ? Number.parseInt(page) - 1 : 0
     conditions.limit= size
     conditions.offset= page * size
 
     if(type) conditions.include[0].where = {name : {[Op.like]: `%${type}%`}}
     if(order) {order = order.split(","); conditions.order = [[order[0], order[1]]];}
     if(name) conditions.where = {name : {[Op.like]: `%${name}%`}}
-    let pokemonFiltered = await Pokemon.findAll(conditions);
+    let pokemonFiltered = await Pokemon.findAndCountAll(conditions);
 
-    return pokemonFiltered
+    let pokemonFinished = type ? await fixPokemonTypes(pokemonFiltered.rows) : pokemonFiltered.rows
+    return {
+        pokemons: pokemonFinished,
+        totalPages: Math.ceil(pokemonFiltered.count / size),
+        results: pokemonFiltered.count
+    }
+}
+
+async function fixPokemonTypes(pokemons){
+    let rightPokemons = []
+    for(let pokemon of pokemons){
+        rightPokemons.push(await getPokemonById(pokemon.id))
+    }
+    return rightPokemons
 }
 
 module.exports = {getAllPokemons, getPokemonByName, getPokemonById, createPokemon, updatePokemon, deletePokemon, getPokemonsFiltered};
